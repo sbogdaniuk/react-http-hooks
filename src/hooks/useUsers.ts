@@ -1,4 +1,4 @@
-import { useHttpGet } from './useHttpGet'
+import { useHttpGet } from './http'
 import { endpoints } from '../constants'
 
 export const useUsers = config =>

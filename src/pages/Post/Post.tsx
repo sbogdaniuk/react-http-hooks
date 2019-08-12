@@ -4,7 +4,8 @@ import { isEmpty } from 'lodash'
 import { useHttpGet } from '../../hooks'
 import { getUrl } from '../../utils'
 import { endpoints } from '../../constants'
-import { PostComments } from './PostComments'
+import { Comments } from './Comments'
+import { AddComment } from './AddComment/AddComment'
 
 export const Post = ({ match }) => {
   const { data: post, loading, error } = useHttpGet({
@@ -22,7 +23,8 @@ export const Post = ({ match }) => {
         <div>
           <h2>{post.title}</h2>
           <div>{post.body}</div>
-          <PostComments id={post.id} />
+          <Comments id={post.id} />
+          <AddComment />
         </div>
       )}
     </div>

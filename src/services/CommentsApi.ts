@@ -6,10 +6,8 @@ import { HttpClient } from './HttpClient'
 
 class CommentsApi extends HttpClient {
   commentsLoader = new DataLoader(async props => {
-    console.log(111, props)
     const { config } = head(props)
     const ids = props.reduce((acc, item) => [...acc, item.id], [])
-    const requestId = uniq()
     const { data: commentsList } = await this.get(endpoints.comments, {
       ...config,
       params: { ...get(config, 'params'), id: ids },

@@ -1,47 +1,28 @@
-import { useCallback, useRef, useState, useEffect } from 'react'
-import axios from 'axios'
+import { useCallback, useState, useEffect } from 'react'
 import { get } from 'lodash'
 import qs from 'query-string'
 
-import { getUrl } from '../utils'
-import { client } from '../services'
-
-const defaultUpdateData = (a, { data }) => data
-
-const initialState = {
-  loading: undefined,
-  data: undefined,
-  error: undefined,
-  headers: undefined,
-}
+import { getUrl } from '../../utils'
+import { defaultUpdateData, initialState } from './common'
+import { useClient } from '../../contexts'
 
 export const useHttpGet = ({ endpoint, params }, options) => {
-  const source = useRef()
+  const { subscribe, unsubscribe, client } = useClient()
   const [state, setState] = useState({
     ...initialState,
     endpoint,
     params,
   })
 
-  const cancelRequest = (message = 'Cancel previous request.') => {
-    const cancel = get(source, 'current.cancel')
-    if (cancel) {
-      cancel(message)
-    }
-  }
-
   const makeRequest = useCallback(
     ({ url, updateData = defaultUpdateData, ...rest } = {}) => {
-      cancelRequest()
-      source.current = axios.CancelToken.source()
       setState(s => ({
         ...s,
         loading: true,
       }))
-      return client
+      return subscribe(url)
         .get(url, {
           ...rest,
-          cancelToken: source.current.token,
           ...options,
         })
         .then(response => {
@@ -66,12 +47,11 @@ export const useHttpGet = ({ endpoint, params }, options) => {
           }
         })
     },
-    [setState, source],
+    [setState],
   )
 
   useEffect(() => {
     const url = getUrl({ path: endpoint, search: params })
-    // const url = getUrl({ path: endpoint })
     if (url) {
       setState(s => ({
         ...s,
@@ -82,7 +62,7 @@ export const useHttpGet = ({ endpoint, params }, options) => {
     }
 
     return () => {
-      cancelRequest()
+      unsubscribe(url)
     }
   }, [endpoint, qs.stringify(params), makeRequest, setState])
 
@@ -100,6 +80,13 @@ export const useHttpGet = ({ endpoint, params }, options) => {
   const refetch = ({ updateData, ...config }) =>
     makeRequest({ updateData, ...config })
 
+  const setData = useCallback(
+    newData => {
+      setState(s => ({ ...s, data: newData }))
+    },
+    [setState],
+  )
+
   return {
     endpoint: state.endpoint,
     params: state.fetchMoreParams || state.params,
@@ -108,7 +95,7 @@ export const useHttpGet = ({ endpoint, params }, options) => {
     error: state.error,
     headers: state.headers,
     fetchMore,
-    setState,
+    setData,
     makeRequest,
     refetch,
   }

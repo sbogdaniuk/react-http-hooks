@@ -29,7 +29,7 @@ export class HttpClient {
   subscriptions = {}
   cancelTokens = {}
 
-  log(props) {
+  log(props: any = {}) {
     if (!isEmpty(props)) {
       console.log(111, 'HttpClient', props)
     }
@@ -49,8 +49,8 @@ export class HttpClient {
     return this.requests
   }
 
-  isCancel(...props) {
-    return axios.isCancel(...props)
+  isCancel(error) {
+    return axios.isCancel(error)
   }
 
   get(url, config) {
