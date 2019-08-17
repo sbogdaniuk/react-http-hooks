@@ -5,7 +5,9 @@ import { useHttpGet } from '../../hooks'
 import { endpoints } from '../../constants'
 import { getUrl } from '../../utils'
 
-export const Comment = ({ id }) => {
+type ID = string | number
+
+export const Comment = ({ id }: { id: ID }) => {
   const { data: comment } = useHttpGet({
     endpoint: getUrl({
       path: endpoints.comment,
@@ -30,7 +32,7 @@ export const Comment = ({ id }) => {
   )
 }
 
-export const Comments = ({ id }) => {
+export const Comments = ({ id }: { id: ID }) => {
   const { data: comments } = useHttpGet({
     endpoint: endpoints.comments,
     params: {

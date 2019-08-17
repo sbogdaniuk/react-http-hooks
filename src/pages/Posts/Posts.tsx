@@ -8,8 +8,12 @@ import { useHttpGet } from '../../hooks'
 import { getLocation } from '../../utils'
 import { routes, endpoints } from '../../constants'
 import { PostsError } from './PostsError'
+import { UpdateData } from '../../hooks/http/common'
 
-const updateData = (prevData = [], { data } = {}) => {
+const updateData: UpdateData = (
+  prevData = [],
+  { data }: { data?: any } = {},
+) => {
   return data ? prevData.concat(data) : prevData
 }
 
@@ -27,7 +31,7 @@ export const Posts = () => {
     error,
     fetchMore,
     headers,
-    params,
+    params = {},
     refetch,
   } = postData
   const total = +get(headers, 'x-total-count') || 0

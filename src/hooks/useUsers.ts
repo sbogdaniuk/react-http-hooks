@@ -1,7 +1,7 @@
 import { useHttpGet } from './http'
 import { endpoints } from '../constants'
 
-export const useUsers = config =>
+export const useUsers = (config: any) =>
   useHttpGet(
     {
       endpoint: endpoints.users,

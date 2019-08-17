@@ -3,8 +3,8 @@ import qs from 'query-string'
 
 interface IProps {
   path?: string
-  pathParams?: { [key: string]: string }
-  search?: { [key: string]: string } | string
+  pathParams?: { [key: string]: any }
+  search?: { [key: string]: any } | string | undefined
 }
 
 export const getLocation = ({
@@ -13,7 +13,7 @@ export const getLocation = ({
   search,
 }: IProps = {}) => ({
   pathname: pathToRegexp.compile(path)(pathParams),
-  search: typeof search === 'string' ? search : qs.stringify(search),
+  search: typeof search === 'object' ? qs.stringify(search) : search,
 })
 
 export const getUrl = ({ path, pathParams, search }: IProps = {}): string => {

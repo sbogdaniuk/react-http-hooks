@@ -6,7 +6,15 @@ import { getUrl } from '../../utils'
 
 const style = { width: 30 }
 
-export const LogItem = ({ user, post, comment }) => {
+type ID = string | number
+
+interface LogItemProps {
+  user?: ID
+  post?: ID
+  comment?: ID
+}
+
+export const LogItem: React.FC<LogItemProps> = ({ user, post, comment }) => {
   const { data: userData } = useHttpGet({
     endpoint: getUrl({
       path: endpoints.user,
@@ -39,9 +47,9 @@ export const LogItem = ({ user, post, comment }) => {
           </tr>
         </tbody>
       </table>
-      {userData && <pre>{JSON.stringify(userData, 0, 2)}</pre>}
-      {postData && <pre>{JSON.stringify(postData, 0, 2)}</pre>}
-      {commentData && <pre>{JSON.stringify(commentData, 0, 2)}</pre>}
+      {userData && <pre>{JSON.stringify(userData, null, 2)}</pre>}
+      {postData && <pre>{JSON.stringify(postData, null, 2)}</pre>}
+      {commentData && <pre>{JSON.stringify(commentData, null, 2)}</pre>}
     </div>
   )
 }

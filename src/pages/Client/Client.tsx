@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { times, uniqueId } from 'lodash'
-import axios from 'axios'
+import axios, { AxiosResponse, AxiosError } from 'axios'
 
 import { client } from '../../services'
 import { getUrl } from '../../utils'
 import { endpoints } from '../../constants'
 
-const Post = ({ id }) => {
-  const requestId = useRef(null)
+type ID = string | number
+
+const Post = ({ id }: { id: ID }) => {
+  const requestId = useRef<string | null>(null)
   const [state, setState] = useState({})
 
   const url = getUrl({
@@ -27,7 +29,7 @@ const Post = ({ id }) => {
     client
       .subscribe(requestId.current, url)
       .get(url)
-      .then(response => {
+      .then((response: AxiosResponse) => {
         if (requestId.current) {
           setState(s => ({
             ...s,
@@ -38,29 +40,31 @@ const Post = ({ id }) => {
           }))
         }
       })
-      .catch(error => {
+      .catch((error: AxiosError) => {
         if (!axios.isCancel(error) && requestId.current) {
           setState(s => ({ ...s, loading: false, error }))
         }
       })
     return () => {
-      client.unsubscribe(requestId.current, url)
+      client.unsubscribe(requestId.current as string, url)
       requestId.current = null
     }
   }, [url, setState])
 
   return (
     <div>
-      <pre>{JSON.stringify(state, 0, 2)}</pre>
+      <pre>{JSON.stringify(state, null, 2)}</pre>
     </div>
   )
 }
 
 export const Client = () => {
   const [count, setCount] = useState()
-  const [range, setRange] = useState(50)
+  const [range, setRange] = useState('50')
   const randomize = () => setCount(Math.ceil(Math.random() * 50 + 25))
-  const onRangeChange = ({ target: { value } }) => {
+  const onRangeChange = ({
+    target: { value },
+  }: React.ChangeEvent<HTMLInputElement>) => {
     setRange(value)
   }
   return (
@@ -85,7 +89,7 @@ export const Client = () => {
       </div>
       <button onClick={randomize}>randomize</button>
       <Post id={range} />
-      {times(count, i => (
+      {times(count, (i: number) => (
         <Post key={i} id={(i % 15) + 1} />
       ))}
     </div>

@@ -3,12 +3,30 @@ import { get } from 'lodash'
 import qs from 'query-string'
 
 import { getUrl } from '../../utils'
-import { defaultUpdateData, initialState } from './common'
+import { defaultUpdateData, initialState, UpdateData } from './common'
 import { useClient } from '../../contexts'
+import { AxiosError, AxiosResponse, AxiosRequestConfig } from 'axios'
 
-export const useHttpGet = ({ endpoint, params }, options) => {
+interface IProps {
+  endpoint?: string
+  params?: { [key: string]: any }
+  updateData?: UpdateData
+}
+
+interface IState extends IProps {
+  loading?: boolean
+  data?: any
+  fetchMoreParams?: { [key: string]: any }
+  headers?: any
+  error?: AxiosError | boolean
+}
+
+export const useHttpGet = (
+  { endpoint, params }: IProps,
+  options: AxiosRequestConfig = {},
+) => {
   const { subscribe, unsubscribe, client } = useClient()
-  const [state, setState] = useState({
+  const [state, setState] = useState<IState>({
     ...initialState,
     endpoint,
     params,
@@ -25,7 +43,7 @@ export const useHttpGet = ({ endpoint, params }, options) => {
           ...rest,
           ...options,
         })
-        .then(response => {
+        .then((response: AxiosResponse) => {
           setState(s => ({
             ...s,
             loading: false,
@@ -35,8 +53,9 @@ export const useHttpGet = ({ endpoint, params }, options) => {
             }),
             headers: response.headers,
           }))
+          return response
         })
-        .catch(error => {
+        .catch((error: AxiosError) => {
           if (!client.isCancel(error)) {
             setState(s => ({
               ...s,
@@ -45,10 +64,14 @@ export const useHttpGet = ({ endpoint, params }, options) => {
               error,
             }))
           }
+          throw error
         })
     },
     [setState],
   )
+
+  const stringifiedParams =
+    typeof params === 'object' ? qs.stringify(params) : ''
 
   useEffect(() => {
     const url = getUrl({ path: endpoint, search: params })
@@ -57,6 +80,7 @@ export const useHttpGet = ({ endpoint, params }, options) => {
         ...s,
         ...initialState,
         loading: true,
+        fetchMoreParams: undefined,
       }))
       makeRequest({ url })
     }
@@ -64,9 +88,13 @@ export const useHttpGet = ({ endpoint, params }, options) => {
     return () => {
       unsubscribe(url)
     }
-  }, [endpoint, qs.stringify(params), makeRequest, setState])
+  }, [endpoint, stringifiedParams, makeRequest, setState])
 
-  const fetchMore = ({ endpoint = state.endpoint, params, updateData }) => {
+  const fetchMore = ({
+    endpoint = state.endpoint,
+    params,
+    updateData,
+  }: IProps) => {
     setState(s => ({
       ...s,
       endpoint,
@@ -77,7 +105,7 @@ export const useHttpGet = ({ endpoint, params }, options) => {
     return makeRequest({ url: endpointUrl, updateData })
   }
 
-  const refetch = ({ updateData, ...config }) =>
+  const refetch = ({ updateData, ...config }: IProps) =>
     makeRequest({ updateData, ...config })
 
   const setData = useCallback(

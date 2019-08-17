@@ -1,4 +1,6 @@
-export const defaultUpdateData = (a, { data }) => data
+export type UpdateData = (prevData: any, nextProps: { data: any }) => any
+
+export const defaultUpdateData: UpdateData = (a, { data }) => data
 
 export const initialState = {
   loading: undefined,

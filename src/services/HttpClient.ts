@@ -1,9 +1,13 @@
-import axios from 'axios'
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { setupCache } from 'axios-cache-adapter'
 import { get, set, isEmpty } from 'lodash'
 import qs from 'query-string'
 
 import { settings } from '../settings'
+
+interface RequestConfig extends AxiosRequestConfig {
+  requestId?: number | string
+}
 
 // Create `axios-cache-adapter` instance
 // const maxAge = 15 * 60 * 1000
@@ -25,9 +29,9 @@ const api = axios.create({
 })
 
 export class HttpClient {
-  requests = {}
-  subscriptions = {}
-  cancelTokens = {}
+  requests: { [key: string]: any } = {}
+  subscriptions: { [key: string]: string[] } = {}
+  cancelTokens: { [key: string]: any } = {}
 
   log(props: any = {}) {
     if (!isEmpty(props)) {
@@ -49,11 +53,11 @@ export class HttpClient {
     return this.requests
   }
 
-  isCancel(error) {
+  isCancel(error: AxiosError) {
     return axios.isCancel(error)
   }
 
-  get(url, config) {
+  get(url: string, config = {}) {
     const runningRequest = get(this.requests, url)
 
     if (runningRequest) {
@@ -67,7 +71,7 @@ export class HttpClient {
       requestId: url,
       cancelToken: source.token,
       ...config,
-    }).then(response => {
+    }).then((response: AxiosResponse) => {
       delete this.subscriptions[url]
       delete this.cancelTokens[url]
       delete this.requests[url]
@@ -80,18 +84,22 @@ export class HttpClient {
     return request
   }
 
-  request(config) {
+  request(config: RequestConfig) {
     return api(config)
   }
 
-  subscribe(id, url) {
-    set(this.subscriptions, url, get(this.subscriptions, url, []).concat(id))
+  subscribe(id: string, url: string) {
+    set(
+      this.subscriptions,
+      url,
+      get(this.subscriptions, url, [] as string[]).concat(id),
+    )
     this.log()
     console.log(111, 'subscribe', this.subscriptions, { id, url })
     return this
   }
 
-  unsubscribe(id, url) {
+  unsubscribe(id: string, url: string) {
     this.log({ id, url })
     if (id) {
       const ids = get(this.subscriptions, url, []).filter(d => d !== id)

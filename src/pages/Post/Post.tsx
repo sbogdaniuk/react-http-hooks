@@ -1,5 +1,6 @@
 import React from 'react'
 import { isEmpty } from 'lodash'
+import { RouteComponentProps } from 'react-router-dom'
 
 import { useHttpGet } from '../../hooks'
 import { getUrl } from '../../utils'
@@ -7,7 +8,9 @@ import { endpoints } from '../../constants'
 import { Comments } from './Comments'
 import { AddComment } from './AddComment/AddComment'
 
-export const Post = ({ match }) => {
+interface PostProps extends RouteComponentProps<{ id?: string }> {}
+
+export const Post = ({ match }: PostProps) => {
   const { data: post, loading, error } = useHttpGet({
     endpoint: getUrl({
       path: endpoints.post,
