@@ -17,10 +17,10 @@ export const useClient = (id = uniqueId()) => {
 
   return useMemo(
     () => ({
-      subscribe: url => client.subscribe(id, url),
-      unsubscribe: url => client.unsubscribe(id, url),
+      subscribe: url => client.subscribe(uuid.current, url),
+      unsubscribe: url => client.unsubscribe(uuid.current, url),
       client,
     }),
-    [uuid.current, client],
+    [client],
   )
 }

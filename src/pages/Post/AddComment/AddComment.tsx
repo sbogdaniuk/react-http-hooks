@@ -5,13 +5,19 @@ import { onSubmit } from './onSubmit'
 import { useHttpPost } from '../../../hooks'
 import { endpoints } from '../../../constants'
 
+interface IValues {
+  name?: string
+  email?: string
+  comment?: string
+}
+
 export const AddComment = () => {
-  const [] = useHttpPost({
+  const [addComment] = useHttpPost<IValues>({
     endpoint: endpoints.comments,
   })
 
   return (
-    <Form onSubmit={onSubmit}>
+    <Form onSubmit={onSubmit<IValues>(addComment)}>
       {({ handleSubmit, submitting, pristine, invalid }) => {
         return (
           <form onSubmit={handleSubmit}>

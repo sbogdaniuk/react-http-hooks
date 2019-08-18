@@ -2,31 +2,35 @@ import { useCallback, useState, useEffect } from 'react'
 import { get } from 'lodash'
 import qs from 'query-string'
 
+import { UpdateData } from '../../global'
 import { getUrl } from '../../utils'
-import { defaultUpdateData, initialState, UpdateData } from './common'
+import { defaultUpdateData, initialState } from './common'
 import { useClient } from '../../contexts'
 import { AxiosError, AxiosResponse, AxiosRequestConfig } from 'axios'
 
-interface IProps {
+interface IProps<Data> {
   endpoint?: string
   params?: { [key: string]: any }
-  updateData?: UpdateData
+  updateData?: UpdateData<Data>
+  skip?: boolean
 }
 
-interface IState<T = any> extends IProps {
+interface IState<Data = any> {
+  endpoint?: IProps<Data>['endpoint']
+  params?: IProps<Data>['params']
   loading?: boolean
-  data?: T
+  data?: Data
   fetchMoreParams?: { [key: string]: any }
   headers?: any
   error?: AxiosError | boolean
 }
 
-export const useHttpGet = <T>(
-  { endpoint, params }: IProps,
+export const useHttpGet = <Data>(
+  { endpoint, params, skip }: IProps<Data>,
   options: AxiosRequestConfig = {},
 ) => {
   const { subscribe, unsubscribe, client } = useClient()
-  const [state, setState] = useState<IState<T>>({
+  const [state, setState] = useState<IState<Data>>({
     ...initialState,
     endpoint,
     params,
@@ -34,40 +38,42 @@ export const useHttpGet = <T>(
 
   const makeRequest = useCallback(
     ({ url, updateData = defaultUpdateData, ...rest } = {}) => {
-      setState(s => ({
-        ...s,
-        loading: true,
-      }))
-      return subscribe(url)
-        .get(url, {
-          ...rest,
-          ...options,
-        })
-        .then((response: AxiosResponse) => {
-          setState(s => ({
-            ...s,
-            loading: false,
-            error: false,
-            data: updateData(s.data, {
-              data: get(response, 'data'),
-            }),
-            headers: response.headers,
-          }))
-          return response
-        })
-        .catch((error: AxiosError) => {
-          if (!client.isCancel(error)) {
+      if (!skip) {
+        setState(s => ({
+          ...s,
+          loading: true,
+        }))
+        return subscribe(url)
+          .get(url, {
+            ...rest,
+            ...options,
+          })
+          .then((response: AxiosResponse<Data>) => {
             setState(s => ({
               ...s,
-              data: updateData(s.data, { error }),
               loading: false,
-              error,
+              error: false,
+              data: updateData(s.data, {
+                data: get(response, 'data'),
+              }),
+              headers: response.headers,
             }))
-          }
-          throw error
-        })
+            return response
+          })
+          .catch((error: AxiosError) => {
+            if (!client.isCancel(error)) {
+              setState(s => ({
+                ...s,
+                data: updateData(s.data, { error }),
+                loading: false,
+                error,
+              }))
+            }
+            throw error
+          })
+      }
     },
-    [setState],
+    [setState, skip, client, subscribe],
   )
 
   const stringifiedParams =
@@ -75,7 +81,7 @@ export const useHttpGet = <T>(
 
   useEffect(() => {
     const url = getUrl({ path: endpoint, search: params })
-    if (url) {
+    if (url && !skip) {
       setState(s => ({
         ...s,
         ...initialState,
@@ -88,13 +94,13 @@ export const useHttpGet = <T>(
     return () => {
       unsubscribe(url)
     }
-  }, [endpoint, stringifiedParams, makeRequest, setState])
+  }, [endpoint, stringifiedParams, makeRequest, setState, skip])
 
   const fetchMore = ({
     endpoint = state.endpoint,
     params,
     updateData,
-  }: IProps) => {
+  }: IProps<Data>) => {
     setState(s => ({
       ...s,
       endpoint,
@@ -105,7 +111,7 @@ export const useHttpGet = <T>(
     return makeRequest({ url: endpointUrl, updateData })
   }
 
-  const refetch = ({ updateData, ...config }: IProps) =>
+  const refetch = ({ updateData, ...config }: IProps<Data>) =>
     makeRequest({ updateData, ...config })
 
   const setData = useCallback(

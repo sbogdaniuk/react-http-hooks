@@ -1,4 +1,6 @@
-export type UpdateData = (prevData: any, nextProps: { data: any }) => any
+import { AxiosError } from 'axios'
+
+import { UpdateData } from '../../global'
 
 export const defaultUpdateData: UpdateData = (a, { data }) => data
 

@@ -4,12 +4,11 @@ import { Link } from 'react-router-dom'
 import { Table } from 'reactstrap'
 import InfiniteScroll from 'react-infinite-scroller'
 
-import { IPost } from '../../global'
+import { IPost, UpdateData } from '../../global'
 import { useHttpGet } from '../../hooks'
 import { getLocation } from '../../utils'
 import { routes, endpoints } from '../../constants'
 import { PostsError } from './PostsError'
-import { UpdateData } from '../../hooks/http/common'
 
 const updateData: UpdateData = (
   prevData = [],

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { get } from 'lodash'
-import { AxiosError } from 'axios'
+import { AxiosError, AxiosResponse, AxiosPromise } from 'axios'
 
+import { UpdateData } from '../../global'
 import { getUrl } from '../../utils'
-import { defaultUpdateData, initialState, UpdateData } from './common'
+import { defaultUpdateData, initialState } from './common'
 import { useClient } from '../../contexts'
 
 interface IProps {
@@ -22,36 +23,51 @@ type TMethod =
   | 'PUT'
   | 'DELETE'
 
-interface IState {
+interface IState<Data> {
   endpoint?: string
   params?: { [key: string]: any }
   loading?: boolean
-  data?: any
+  data?: Data
   error?: boolean | Error
   headers?: { [key: string]: string }
   url?: string
 }
 
-interface IMutationProps {
+interface IMutationProps<Values, Data> {
   endpoint?: string
   params?: { [key: string]: any }
-  data?: any
-  updateData?: UpdateData
+  data?: Values
+  updateData?: UpdateData<Data>
 }
 
-const useMutation = ({ method, endpoint, params }: IProps = {}) => {
+export type TMutationFunc<Values, Data> = (
+  props: IMutationProps<Values, Data>,
+) => AxiosPromise<AxiosResponse<Data>>
+
+type TSetData<Data> = (d?: Data) => void
+
+type TMutationResponse<Values, Data> = [
+  TMutationFunc<Values, Data>,
+  IState<Data> & { setData: TSetData<Data> }
+]
+
+const useMutation = <Values = any, Data = any>({
+  method,
+  endpoint,
+  params,
+}: IProps = {}): TMutationResponse<Values, Data> => {
   const { subscribe, unsubscribe, client } = useClient()
   const url = getUrl({
     path: endpoint,
     search: params,
   })
-  const [state, setState] = useState<IState>({
+  const [state, setState] = useState<IState<Data>>({
     ...initialState,
     url,
   })
 
   const mutation = useCallback(
-    (props: IMutationProps) => {
+    (props: IMutationProps<Values, Data>) => {
       const {
         endpoint,
         params,
@@ -66,11 +82,13 @@ const useMutation = ({ method, endpoint, params }: IProps = {}) => {
         loading: true,
       }))
       return subscribe(newUrl)
-        .request(newUrl, data, {
+        .request({
+          url: newUrl,
+          data,
           method,
           ...config,
         })
-        .then((payload: any) => {
+        .then((payload: AxiosResponse<Data>) => {
           setState(state => ({
             ...state,
             loading: false,
@@ -97,7 +115,7 @@ const useMutation = ({ method, endpoint, params }: IProps = {}) => {
 
   useEffect(() => () => unsubscribe(state.url), [state.url])
 
-  const setData = useCallback(
+  const setData = useCallback<TSetData<Data>>(
     newData => {
       setState(s => ({ ...s, data: newData }))
     },
@@ -118,11 +136,11 @@ const useMutation = ({ method, endpoint, params }: IProps = {}) => {
   ]
 }
 
-export const useHttpPost = (config: IProps) =>
-  useMutation({ method: 'post', ...config })
-export const useHttpPut = (config: IProps) =>
-  useMutation({ method: 'put', ...config })
-export const useHttpPatch = (config: IProps) =>
-  useMutation({ method: 'patch', ...config })
-export const useHttpDelete = (config: IProps) =>
-  useMutation({ method: 'delete', ...config })
+export const useHttpPost = <Values, Data = any>(config: IProps) =>
+  useMutation<Values, Data>({ method: 'post', ...config })
+export const useHttpPut = <Values, Data = any>(config: IProps) =>
+  useMutation<Values, Data>({ method: 'put', ...config })
+export const useHttpPatch = <Values, Data = any>(config: IProps) =>
+  useMutation<Values, Data>({ method: 'patch', ...config })
+export const useHttpDelete = <Values, Data = any>(config: IProps) =>
+  useMutation<Values, Data>({ method: 'delete', ...config })

@@ -7,7 +7,7 @@ import { useHttpGet } from '../../hooks'
 import { getUrl } from '../../utils'
 import { endpoints } from '../../constants'
 import { Comments } from './Comments'
-import { AddComment } from './AddComment/AddComment'
+import { AddComment } from './AddComment'
 
 interface PostProps extends RouteComponentProps<{ id?: string }> {}
 

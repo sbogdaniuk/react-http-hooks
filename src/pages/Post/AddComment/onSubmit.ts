@@ -1,12 +1,14 @@
 import { sleep } from '../../../utils'
 
-export const onSubmit = (mutation: (values: any) => Promise<void>) => async (
-  values: any,
-) => {
+import { TMutationFunc } from '../../../hooks/http/useMutation'
+
+export const onSubmit = <Values, Data = any>(
+  addComment: TMutationFunc<Values, Data>,
+) => async (values: Values) => {
   console.log(111, 'Start submit', values)
   await sleep(1000)
 
-  await mutation(values)
+  const payload = await addComment({ data: values })
 
-  console.log(999, 'End submit')
+  console.log(999, 'End submit', payload)
 }
