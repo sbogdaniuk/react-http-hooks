@@ -1,8 +1,8 @@
 import { useHttpGet } from './http'
 import { endpoints } from '../constants'
 
-export const useUsers = (config: any) =>
-  useHttpGet(
+export const useUsers = <T>(config: any = {}) =>
+  useHttpGet<T>(
     {
       endpoint: endpoints.users,
       ...config,

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { Table } from 'reactstrap'
 import InfiniteScroll from 'react-infinite-scroller'
 
+import { IPost } from '../../global'
 import { useHttpGet } from '../../hooks'
 import { getLocation } from '../../utils'
 import { routes, endpoints } from '../../constants'
@@ -12,13 +13,13 @@ import { UpdateData } from '../../hooks/http/common'
 
 const updateData: UpdateData = (
   prevData = [],
-  { data }: { data?: any } = {},
+  { data }: { data?: IPost[] } = {},
 ) => {
   return data ? prevData.concat(data) : prevData
 }
 
 export const Posts = () => {
-  const postData = useHttpGet({
+  const postData = useHttpGet<IPost[]>({
     endpoint: endpoints.posts,
     params: {
       _page: 1,
@@ -35,7 +36,7 @@ export const Posts = () => {
     refetch,
   } = postData
   const total = +get(headers, 'x-total-count') || 0
-  const hasMore = (!error && total > get(posts, 'length')) || false
+  const hasMore = (!error && total > (posts || []).length) || false
 
   const loadMorePosts = () => {
     console.log(111, 'loadMorePosts', loadMorePosts, { loading, hasMore })
@@ -51,8 +52,8 @@ export const Posts = () => {
     }
   }
 
-  const refetchOnError = config => {
-    refetch({
+  const refetchOnError = (config: any): Promise<any> => {
+    return refetch({
       ...config,
       updateData,
     })
@@ -69,7 +70,7 @@ export const Posts = () => {
             pageStart={0}
             loadMore={loadMorePosts}
             hasMore={hasMore}
-            loader={null}
+            loader={undefined}
           >
             <Table striped bordered>
               <thead>
@@ -81,7 +82,7 @@ export const Posts = () => {
                 </tr>
               </thead>
               <tbody>
-                {posts.map(post => (
+                {posts.map((post: IPost) => (
                   <tr key={post.id}>
                     <td>{post.id}</td>
                     <td>

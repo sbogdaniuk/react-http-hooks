@@ -13,20 +13,20 @@ interface IProps {
   updateData?: UpdateData
 }
 
-interface IState extends IProps {
+interface IState<T = any> extends IProps {
   loading?: boolean
-  data?: any
+  data?: T
   fetchMoreParams?: { [key: string]: any }
   headers?: any
   error?: AxiosError | boolean
 }
 
-export const useHttpGet = (
+export const useHttpGet = <T>(
   { endpoint, params }: IProps,
   options: AxiosRequestConfig = {},
 ) => {
   const { subscribe, unsubscribe, client } = useClient()
-  const [state, setState] = useState<IState>({
+  const [state, setState] = useState<IState<T>>({
     ...initialState,
     endpoint,
     params,

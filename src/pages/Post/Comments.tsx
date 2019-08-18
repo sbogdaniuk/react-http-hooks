@@ -1,39 +1,47 @@
 import React from 'react'
-import { map, isEmpty } from 'lodash'
+import { map, isEmpty, isUndefined } from 'lodash'
 
+import { ID } from '../../global'
 import { useHttpGet } from '../../hooks'
 import { endpoints } from '../../constants'
 import { getUrl } from '../../utils'
 
-type ID = string | number
+interface Comment {
+  id: ID
+  name?: string
+  email?: string
+  body?: string
+}
 
 export const Comment = ({ id }: { id: ID }) => {
-  const { data: comment } = useHttpGet({
+  const { data: comment } = useHttpGet<Comment>({
     endpoint: getUrl({
       path: endpoints.comment,
       pathParams: { id },
     }),
   })
 
-  if (isEmpty(comment)) return null
+  if (!isUndefined(comment) && !isEmpty(comment)) {
+    return (
+      <>
+        <div>
+          <b>Name:</b> {comment.name}
+        </div>
+        <div>
+          <b>Email:</b> {comment.email}
+        </div>
+        <div>
+          <b>Body:</b> {comment.body}
+        </div>
+      </>
+    )
+  }
 
-  return (
-    <>
-      <div>
-        <b>Name:</b> {comment.name}
-      </div>
-      <div>
-        <b>Email:</b> {comment.email}
-      </div>
-      <div>
-        <b>Body:</b> {comment.body}
-      </div>
-    </>
-  )
+  return null
 }
 
 export const Comments = ({ id }: { id: ID }) => {
-  const { data: comments } = useHttpGet({
+  const { data: comments } = useHttpGet<Comment[]>({
     endpoint: endpoints.comments,
     params: {
       postId: id,
