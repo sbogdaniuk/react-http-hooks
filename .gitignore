@@ -1,2 +1,9 @@
-node_modules
-public
+node_modules/
+npm-debug.log
+dist/*
+!dist/.gitkeep
+tmp
+.idea
+.env
+coverage
+test
