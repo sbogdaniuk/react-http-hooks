@@ -1,34 +1,71 @@
-import React from 'react'
+import React, { useState, FC } from 'react'
 import { RouteComponentProps } from 'react-router-dom'
 
-import { IUser } from '../../global'
+import { IUser, ID } from '../../global'
 import { useHttpGet } from '../../hooks'
 import { getUrl } from '../../utils'
 import { endpoints } from '../../constants'
 import { OtherUsers } from './OtherUsers'
 
-interface Params {
-  id?: string
+const usePerson = (id: ID) => {
+  const url = id
+    ? getUrl({
+        path: endpoints.user,
+        params: { id },
+      })
+    : ''
+  return useHttpGet<IUser>(
+    {
+      url,
+    },
+    {
+      cache: {
+        maxAge: 2 * 1000,
+      },
+    },
+  )
 }
 
-interface Props extends RouteComponentProps<Params> {}
+interface Props {
+  id?: string
+  test?: any
+}
 
-export const User = ({ match }: Props) => {
-  const result = useHttpGet<IUser>({
-    endpoint: getUrl({
-      path: endpoints.user,
-      pathParams: { id: match.params.id },
-    }),
-  })
+const Person: FC<Props> = props => {
+  const result = usePerson(props.id as ID)
 
   const { data: user, loading, error } = result
 
   return (
     <div>
-      <h1>User</h1>
       {loading ? <div>Loading...</div> : error && <div>Error...</div>}
       <pre>{JSON.stringify(user, null, 2)}</pre>
-      <OtherUsers excludeId={match.params.id} />
+    </div>
+  )
+}
+
+export const User: FC<RouteComponentProps<{ id?: string }>> = ({ match }) => {
+  const {
+    params: { id },
+  } = match
+
+  const [visible, setVisible] = useState(false)
+
+  return (
+    <div>
+      <h1>User</h1>
+      {typeof id !== 'undefined' && (
+        <>
+          <Person id={id} test="test" />
+          <div>
+            <button onClick={() => setVisible(!visible)}>
+              visible: {String(visible)}
+            </button>
+            {visible && <Person id={id} />}
+          </div>
+          <OtherUsers excludeId={id} />
+        </>
+      )}
     </div>
   )
 }

@@ -16,23 +16,23 @@ interface LogItemProps {
 
 export const LogItem: React.FC<LogItemProps> = ({ user, post, comment }) => {
   const { data: userData } = useHttpGet({
-    endpoint: getUrl({
+    url: getUrl({
       path: endpoints.user,
-      pathParams: { id: user },
+      params: { id: user },
     }),
   })
 
   const { data: postData } = useHttpGet({
-    endpoint: getUrl({
+    url: getUrl({
       path: endpoints.post,
-      pathParams: { id: post },
+      params: { id: post },
     }),
   })
 
   const { data: commentData } = useHttpGet({
-    endpoint: getUrl({
+    url: getUrl({
       path: endpoints.comment,
-      pathParams: { id: comment },
+      params: { id: comment },
     }),
   })
 

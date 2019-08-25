@@ -3,21 +3,21 @@ import qs from 'query-string'
 
 interface IProps {
   path?: string
-  pathParams?: { [key: string]: any }
+  params?: { [key: string]: any }
   search?: { [key: string]: any } | string | undefined
 }
 
 export const getLocation = ({
   path = '',
-  pathParams = {},
+  params = {},
   search,
 }: IProps = {}) => ({
-  pathname: pathToRegexp.compile(path)(pathParams),
+  pathname: pathToRegexp.compile(path)(params),
   search: typeof search === 'object' ? qs.stringify(search) : search,
 })
 
-export const getUrl = ({ path, pathParams, search }: IProps = {}): string => {
-  const location = getLocation({ path, pathParams, search })
+export const getUrl = ({ path, params, search }: IProps = {}): string => {
+  const location = getLocation({ path, params, search })
 
   return [location.pathname, location.search].filter(d => d).join('?')
 }
@@ -28,7 +28,7 @@ const getWindowLocation = () => ({
 })
 
 interface ILocation {
-  search?: { [key: string]: string } | string
+  search?: { [key: string]: any } | string
   pathname?: string
 }
 

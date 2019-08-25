@@ -17,7 +17,8 @@ export const useClient = (id = uniqueId()) => {
 
   return useMemo(
     () => ({
-      subscribe: url => client.subscribe(uuid.current, url),
+      subscribe: (url, callback) =>
+        client.subscribe(uuid.current, url, callback),
       unsubscribe: url => client.unsubscribe(uuid.current, url),
       client,
     }),

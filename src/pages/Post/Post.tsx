@@ -13,9 +13,9 @@ interface PostProps extends RouteComponentProps<{ id?: string }> {}
 
 export const Post = ({ match }: PostProps) => {
   const { data: post, loading, error } = useHttpGet<IPost>({
-    endpoint: getUrl({
+    url: getUrl({
       path: endpoints.post,
-      pathParams: { id: match.params.id },
+      params: { id: match.params.id },
     }),
   })
 

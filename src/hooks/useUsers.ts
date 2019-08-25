@@ -1,15 +1,23 @@
 import { useHttpGet } from './http'
 import { endpoints } from '../constants'
+import { ID } from '../global'
 
-export const useUsers = <T>(config: any = {}) =>
-  useHttpGet<T>(
+export interface IUser {
+  id: ID
+  name: string
+}
+
+const options = {
+  cache: {
+    maxAge: 15 * 60 * 1000,
+  },
+}
+
+export const useUsers = (config: any = {}) =>
+  useHttpGet<IUser[]>(
     {
-      endpoint: endpoints.users,
+      url: endpoints.users,
       ...config,
     },
-    {
-      cache: {
-        maxAge: 15 * 60 * 1000,
-      },
-    },
+    options,
   )

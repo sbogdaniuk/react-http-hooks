@@ -2,11 +2,12 @@ import React from 'react'
 import { get, isEmpty } from 'lodash'
 import { Link } from 'react-router-dom'
 import { Table } from 'reactstrap'
+import qs from 'query-string'
 import InfiniteScroll from 'react-infinite-scroller'
 
 import { IPost, UpdateData } from '../../global'
 import { useHttpGet } from '../../hooks'
-import { getLocation } from '../../utils'
+import { getLocation, getUrl } from '../../utils'
 import { routes, endpoints } from '../../constants'
 import { PostsError } from './PostsError'
 
@@ -19,33 +20,37 @@ const updateData: UpdateData = (
 
 export const Posts = () => {
   const postData = useHttpGet<IPost[]>({
-    endpoint: endpoints.posts,
-    params: {
-      _page: 1,
-      _limit: 20,
-    },
+    url: getUrl({
+      path: endpoints.posts,
+      search: {
+        _page: 1,
+        _limit: 20,
+      },
+    }),
   })
   const {
+    url,
     data: posts,
     loading,
     error,
     fetchMore,
     headers,
-    params = {},
     refetch,
   } = postData
   const total = +get(headers, 'x-total-count') || 0
   const hasMore = (!error && total > (posts || []).length) || false
 
   const loadMorePosts = () => {
-    console.log(111, 'loadMorePosts', loadMorePosts, { loading, hasMore })
-    if (!loading && hasMore) {
-      console.log(111, 'params._page', params._page)
+    if (!loading && hasMore && url) {
+      const parsedUrl = qs.parseUrl(url)
       fetchMore({
-        params: {
-          _page: params._page + 1,
-          _limit: 20,
-        },
+        url: getUrl({
+          path: parsedUrl.url,
+          search: {
+            _page: +(parsedUrl.query._page as string) + 1,
+            _limit: 20,
+          },
+        }),
         updateData,
       })
     }
@@ -88,7 +93,7 @@ export const Posts = () => {
                       <Link
                         to={getLocation({
                           path: routes.post,
-                          pathParams: { id: post.id },
+                          params: { id: post.id },
                         })}
                       >
                         {post.title}

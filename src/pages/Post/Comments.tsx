@@ -15,9 +15,9 @@ interface Comment {
 
 export const Comment = ({ id }: { id: ID }) => {
   const { data: comment } = useHttpGet<Comment>({
-    endpoint: getUrl({
+    url: getUrl({
       path: endpoints.comment,
-      pathParams: { id },
+      params: { id },
     }),
   })
 
@@ -42,10 +42,12 @@ export const Comment = ({ id }: { id: ID }) => {
 
 export const Comments = ({ id }: { id: ID }) => {
   const { data: comments } = useHttpGet<Comment[]>({
-    endpoint: endpoints.comments,
-    params: {
-      postId: id,
-    },
+    url: getUrl({
+      path: endpoints.comments,
+      search: {
+        postId: id,
+      },
+    }),
   })
 
   const ids = map(comments, d => d.id)

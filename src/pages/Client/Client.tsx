@@ -14,7 +14,7 @@ const Post = ({ id }: { id: ID }) => {
 
   const url = getUrl({
     path: endpoints.post,
-    pathParams: { id },
+    params: { id },
   })
 
   useEffect(() => {

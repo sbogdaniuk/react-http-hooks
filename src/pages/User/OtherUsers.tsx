@@ -11,13 +11,8 @@ interface Props {
   excludeId?: ID
 }
 
-interface User {
-  id: ID
-  name: string
-}
-
-export const OtherUsers = ({ excludeId }: Props) => {
-  const { data: users, loading, error } = useUsers<User[]>()
+export const OtherUsers: React.FC<Props> = ({ excludeId }) => {
+  const { data: users, loading, error } = useUsers()
 
   return (
     <div>
@@ -30,7 +25,7 @@ export const OtherUsers = ({ excludeId }: Props) => {
               <Link
                 to={getLocation({
                   path: routes.user,
-                  pathParams: { id: user.id },
+                  params: { id: user.id },
                 })}
               >
                 {user.name}

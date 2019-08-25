@@ -1,5 +1,3 @@
-import { AxiosError } from 'axios'
-
 import { UpdateData } from '../../global'
 
 export const defaultUpdateData: UpdateData = (a, { data }) => data

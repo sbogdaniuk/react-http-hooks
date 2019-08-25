@@ -1,12 +1,19 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { setupCache } from 'axios-cache-adapter'
+import { throttleAdapterEnhancer } from 'axios-extensions'
 import { get, set, isEmpty } from 'lodash'
 import qs from 'query-string'
 
 import { settings } from '../settings'
+import { ID } from '../global'
 
 interface RequestConfig extends AxiosRequestConfig {
   requestId?: number | string
+}
+
+interface ISubscription {
+  id: ID
+  callback?: (response: AxiosResponse) => void
 }
 
 // Create `axios-cache-adapter` instance
@@ -24,13 +31,13 @@ const cache = setupCache({
 
 // Create `axios` instance passing the newly created `cache.adapter`
 const api = axios.create({
-  adapter: cache.adapter,
+  adapter: throttleAdapterEnhancer(cache.adapter),
   baseURL: settings.baseURL,
 })
 
 export class HttpClient {
   requests: { [key: string]: any } = {}
-  subscriptions: { [key: string]: string[] } = {}
+  subscriptions: { [key: string]: ISubscription[] } = {}
   cancelTokens: { [key: string]: any } = {}
 
   log(props: any = {}) {
@@ -57,52 +64,56 @@ export class HttpClient {
     return axios.isCancel(error)
   }
 
-  get(url: string, config = {}) {
-    const runningRequest = get(this.requests, url)
-
-    if (runningRequest) {
-      return runningRequest
-    }
-
-    const source = axios.CancelToken.source()
-    const request = this.request({
+  async get(url: string, config = {}) {
+    return this.request({
       method: 'get',
       url,
-      requestId: url,
-      cancelToken: source.token,
       ...config,
     }).then((response: AxiosResponse) => {
-      delete this.subscriptions[url]
-      delete this.cancelTokens[url]
-      delete this.requests[url]
+      // this.notifySubscribers(url, response)
       return response
     })
-
-    set(this.requests, url, request)
-    set(this.cancelTokens, url, source)
-
-    return request
   }
 
   request(config: RequestConfig) {
     return api(config)
   }
 
-  subscribe(id: string, url: string) {
+  notifySubscribers(url: string, response: AxiosResponse) {
+    console.log(
+      111,
+      'notifySubscribers',
+      url,
+      response,
+      response.request.fromCache,
+    )
+    console.log(222, 'subscriptions', this.subscriptions)
+  }
+
+  subscribe(
+    id: ISubscription['id'],
+    url: string,
+    callback: ISubscription['callback'] = undefined,
+  ) {
     set(
       this.subscriptions,
       url,
-      get(this.subscriptions, url, [] as string[]).concat(id),
+      get(this.subscriptions, url, [] as ISubscription[]).concat({
+        id,
+        callback,
+      }),
     )
     this.log()
     console.log(111, 'subscribe', this.subscriptions, { id, url })
     return this
   }
 
-  unsubscribe(id: string, url: string) {
+  unsubscribe(id: ISubscription['id'], url: string) {
     this.log({ id, url })
     if (id) {
-      const ids = get(this.subscriptions, url, []).filter(d => d !== id)
+      const ids = get(this.subscriptions, url, [] as ISubscription[]).filter(
+        d => d.id !== id,
+      )
       if (isEmpty(ids)) {
         const cancel = get(this.cancelTokens, [url, 'cancel'])
         console.log(111, 'cancel', cancel)
