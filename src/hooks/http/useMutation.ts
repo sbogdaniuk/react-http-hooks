@@ -56,7 +56,7 @@ const useMutation = <Values = any, Data = any>({
   endpoint,
   params,
 }: IProps = {}): TMutationResponse<Values, Data> => {
-  const { subscribe, unsubscribe, client } = useClient()
+  const { client } = useClient()
   const url = getUrl({
     path: endpoint,
     search: params,
@@ -81,7 +81,7 @@ const useMutation = <Values = any, Data = any>({
         url: newUrl,
         loading: true,
       }))
-      return subscribe(newUrl)
+      return client
         .request({
           url: newUrl,
           data,
@@ -112,8 +112,6 @@ const useMutation = <Values = any, Data = any>({
     },
     [setState, url, client],
   )
-
-  useEffect(() => () => unsubscribe(state.url), [state.url])
 
   const setData = useCallback<TSetData<Data>>(
     newData => {
