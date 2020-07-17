@@ -19,7 +19,7 @@
     "dataloader": "^1.4.0",
     "final-form": "^4.18.4",
     "history": "4.9.0",
-    "lodash": "4.17.11",
+    "lodash": "4.17.19",
     "path-to-regexp": "3.0.0",
     "query-string": "6.8.1",
     "react": "16.8.6",
